@@ -21,7 +21,6 @@ const TicketFilterComp: FunctionComponent<TicketFilterProps> = ({
       } else {
         filterStatus = [...filterStatus, value];
       }
-      console.log(filterStatus);
       onFilterChange({ completed: filterStatus });
     },
     [filter, onFilterChange]
