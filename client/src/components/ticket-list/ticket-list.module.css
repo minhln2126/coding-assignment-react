@@ -1,0 +1,46 @@
+.ticketRow {
+  width: 100%;
+  display: flex;
+  padding: 10px 20px;
+}
+
+.idCol {
+  width: 50px;
+  display: flex;
+  align-items: center;
+}
+
+.assigneeCol {
+  width: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.statusCol {
+  width: 120px;
+  display: flex;
+  align-items: center;
+}
+
+.descriptionCol {
+  width: calc(100% - 50px - 200px - 100px);
+  display: flex;
+  align-items: center;
+}
+
+.ticketStatus {
+  text-align: center;
+  font-size: 14px;
+  color: white;
+  padding: 5px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.ticketCompleted {
+  background-color: var(--success);
+}
+
+.ticketNotCompleted {
+  background-color: var(--warning);
+}

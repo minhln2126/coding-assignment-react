@@ -1,0 +1,9 @@
+.ticketFilter {
+  display: flex;
+  align-items: center;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+}
