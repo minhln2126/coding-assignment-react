@@ -49,7 +49,11 @@ const TicketList: FunctionComponent<TicketListProps> = ({
   }, [users, tickets]);
 
   return (
-    <TableContainer className={styles["tableContainer"]} component={Paper}>
+    <TableContainer
+      data-testid="ticket-list"
+      className={styles["tableContainer"]}
+      component={Paper}
+    >
       <Table stickyHeader>
         <TableHead>
           <TableRow>

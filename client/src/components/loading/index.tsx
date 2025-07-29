@@ -9,7 +9,7 @@ type LoadingProps = {
 
 const Loading: FunctionComponent<LoadingProps> = ({ iconSize = 20 }) => {
   return (
-    <div className={styles["loading"]}>
+    <div className={styles["loading"]} data-testid="loading">
       <CircularProgress />
     </div>
   );

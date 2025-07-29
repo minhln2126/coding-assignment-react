@@ -91,6 +91,7 @@ const Tickets: FunctionComponent = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={onShowCreateTicketPopup}
+            data-testid="new-ticket-btn"
           >
             New ticket
           </Button>

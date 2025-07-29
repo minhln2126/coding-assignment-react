@@ -17,7 +17,7 @@ export type TicketFilter = {
   completed: Ticket["completed"][];
 };
 
-type TicketsStore = {
+export type TicketsStore = {
   tickets: Ticket[];
   ticketsLoadingStatus: LoadingStatus;
   filteredTickets: Ticket[];

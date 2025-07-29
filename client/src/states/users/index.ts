@@ -4,7 +4,7 @@ import { logError } from "client/src/utils/logger";
 import { apiGetUsers } from "client/src/api/users";
 import { User } from "@acme/shared-models";
 
-type UsersStore = {
+export type UsersStore = {
   users: User[];
   usersLoadingStatus: LoadingStatus;
 };
