@@ -14,6 +14,7 @@ import styles from "./ticket-list.module.css";
 import { Nullable } from "client/src/types";
 
 type TicketListProps = {
+  className?: string;
   tickets: Ticket[];
   users: User[];
 };
@@ -48,8 +49,8 @@ const TicketList: FunctionComponent<TicketListProps> = ({
   }, [users, tickets]);
 
   return (
-    <TableContainer component={Paper}>
-      <Table aria-label="simple table">
+    <TableContainer className={styles["tableContainer"]} component={Paper}>
+      <Table stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>ID</TableCell>

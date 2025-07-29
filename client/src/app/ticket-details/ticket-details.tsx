@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { MenuItem, Select, SelectChangeEvent, Snackbar } from "@mui/material";
 
 import styles from "./ticket-details.module.css";
 import { getAllUsers, useUsersStore } from "client/src/states/users";
@@ -6,26 +7,29 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import { LOADING_STATUS, Nullable } from "client/src/types";
 import {
   assignTicketToUser,
-  changTicketStatus,
+  changeTicketStatus,
   getTicketById,
   useTicketsStore,
 } from "client/src/states/tickets";
 import { uniques } from "client/src/utils";
 import Loading from "client/src/components/loading";
-import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
-
-/* eslint-disable-next-line */
-export interface TicketDetailsProps {}
 
 export function TicketDetails() {
   const { id: idParam } = useParams();
   const [assignee, setAssignee] = useState<Nullable<number>>(null);
   const [completed, setCompleted] = useState<Nullable<boolean>>(null);
+  const [showNoti, setShowNoti] = useState(false);
+  const [notiMsg, setNotiMsg] = useState("");
 
   const users = useUsersStore((state) => state.users);
   const usersLoadingStatus = useUsersStore((state) => state.usersLoadingStatus);
   const ticket = useTicketsStore((state) => state.ticketById);
-  const ticketByIdStatus = useTicketsStore((state) => state.ticketByIdStatus);
+  const updateTicketLoadingStatus = useTicketsStore(
+    (state) => state.updateTicketLoadingStatus
+  );
+  const ticketByIdStatus = useTicketsStore(
+    (state) => state.ticketByIdLoadingStatus
+  );
 
   const id: Nullable<number> = useMemo(() => {
     if (!idParam) return null;
@@ -48,6 +52,24 @@ export function TicketDetails() {
     setCompleted(ticket.completed);
   }, [ticket]);
 
+  useEffect(() => {
+    if (updateTicketLoadingStatus === LOADING_STATUS.LOADING) {
+      setShowNoti(true);
+      setNotiMsg("Updating!!");
+      return;
+    }
+    if (updateTicketLoadingStatus === LOADING_STATUS.SUCCESS) {
+      setShowNoti(true);
+      setNotiMsg("Update ticket success!");
+      return;
+    }
+    if (updateTicketLoadingStatus === LOADING_STATUS.FAIL) {
+      setShowNoti(true);
+      setNotiMsg("Update ticket failed!");
+      return;
+    }
+  }, [updateTicketLoadingStatus]);
+
   const loadingStatus = useMemo(() => {
     const status = uniques([usersLoadingStatus, ticketByIdStatus]);
     if (status.length !== 1) {
@@ -57,33 +79,40 @@ export function TicketDetails() {
     return usersLoadingStatus;
   }, [usersLoadingStatus, ticketByIdStatus]);
 
-  const handleChangeAssignee = (e: SelectChangeEvent) => {
+  const onChangeAssignee = (e: SelectChangeEvent) => {
     let userId = parseInt(e.target.value);
     if (!id) return;
     setAssignee(userId);
     assignTicketToUser(id, userId);
   };
 
-  const handleCompletedTicket = (e: SelectChangeEvent) => {
+  const onChangeTicketStatus = (e: SelectChangeEvent) => {
     if (!id) return;
-    let status = e.target.value === "true" ? true : false;
-    setCompleted(status);
-    changTicketStatus(id, status);
+    let completed = e.target.value === "true" ? true : false;
+    setCompleted(completed);
+    changeTicketStatus(id, completed);
+  };
+
+  const onHideNote = () => {
+    setShowNoti(false);
   };
 
   return (
-    <div className={styles["container"]}>
-      {loadingStatus === LOADING_STATUS.LOADING && <Loading />}
-      {loadingStatus === LOADING_STATUS.SUCCESS && (
-        <div className={styles["wrap"]}>
+    <div className={styles["wrap"]}>
+      {loadingStatus === LOADING_STATUS.LOADING && !ticket && <Loading />}
+      {loadingStatus === LOADING_STATUS.FAIL && (
+        <div className={styles["notFound"]}>
+          <h1>Ticket not found!</h1>
+        </div>
+      )}
+      {ticket && ticket.id === id && (
+        <Fragment>
           <h1 className={styles["title"]}>Ticket {id}</h1>
           <div className={styles["dataRow"]}>
             <div className={styles["lb"]}>Assignee</div>
             <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
               value={`${assignee}`}
-              onChange={handleChangeAssignee}
+              onChange={onChangeAssignee}
               className={styles["input"]}
             >
               {users.map((user) => {
@@ -98,10 +127,8 @@ export function TicketDetails() {
           <div className={styles["dataRow"]}>
             <div className={styles["lb"]}>Status</div>
             <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
               value={`${completed}`}
-              onChange={handleCompletedTicket}
+              onChange={onChangeTicketStatus}
               className={styles["input"]}
             >
               <MenuItem value="false">Not completed</MenuItem>
@@ -111,11 +138,18 @@ export function TicketDetails() {
           <div className={styles["dataRow"]}>
             <div className={styles["lb"]}>Description</div>
           </div>
-          <div className={styles["ticket-description"]}>
+          <div className={styles["ticketDescription"]}>
             {ticket?.description}
           </div>
-        </div>
+        </Fragment>
       )}
+      <Snackbar
+        open={showNoti}
+        autoHideDuration={3000}
+        onClose={onHideNote}
+        message={notiMsg}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </div>
   );
 }

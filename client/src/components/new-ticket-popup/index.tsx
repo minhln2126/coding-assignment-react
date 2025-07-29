@@ -14,26 +14,21 @@ const NewTicketPopup: FunctionComponent<NewTicketPopupProps> = ({
   onClose,
   onSubmit: _onSubmit,
 }) => {
+  const popupRef = useOnClickOutside<HTMLDivElement>(onClose);
+  const [errorMsg, setErrorMsg] = useState("");
   const [ticketData, setTicketData] = useState<Pick<Ticket, "description">>({
     description: "",
   });
 
-  useEffect(() => {
-    console.log(ticketData);
-  }, [ticketData]);
-
-  useEffect(() => {
-    console.log("onclose");
-  }, [onClose]);
-
   const onSubmit = useCallback(() => {
-    console.log(ticketData);
-    if (!ticketData.description) return;
+    if (!ticketData.description) {
+      setErrorMsg("Please enter ticket description!");
+      return;
+    }
+    setErrorMsg("");
     _onSubmit?.(ticketData);
     onClose();
   }, [ticketData]);
-
-  const popupRef = useOnClickOutside<HTMLDivElement>(onClose);
 
   const onDescriptionChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -46,15 +41,17 @@ const NewTicketPopup: FunctionComponent<NewTicketPopupProps> = ({
     },
     []
   );
+
   return (
     <div className={styles["modal"]}>
       <div className={styles["popup"]} ref={popupRef}>
         <h4>New ticket</h4>
-        <div>
+        <div className={styles["inputContainer"]}>
           <textarea
             value={ticketData.description}
             onChange={onDescriptionChange}
           />
+          {errorMsg && <div className={styles["errorMsg"]}>{errorMsg}</div>}
         </div>
         <Button
           className={styles["submitBtn"]}

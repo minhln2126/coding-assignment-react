@@ -44,3 +44,8 @@
 .ticketNotCompleted {
   background-color: var(--warning);
 }
+
+.tableContainer {
+  max-height: calc(100vh - 140px);
+  overflow: scroll;
+}

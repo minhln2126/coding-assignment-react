@@ -2,8 +2,15 @@ const BASE_URL = "http://localhost:4200/api";
 
 export async function apiGet<T = unknown>(url: string): Promise<T> {
   const response = await fetch(`${BASE_URL}${url}`);
-  const json = await response.json();
-  return json as T;
+  if (!response.ok) {
+    throw new Error(`Get failed for url: ${url}`);
+  }
+  const text = await response.text();
+  if (text) {
+    const result = JSON.parse(text) as T;
+    return result;
+  }
+  return null as T;
 }
 
 export async function apiPut<T = unknown>(url: string, body?: unknown) {
@@ -17,12 +24,15 @@ export async function apiPut<T = unknown>(url: string, body?: unknown) {
     options.body = JSON.stringify(body);
   }
   const response = await fetch(`${BASE_URL}${url}`, options);
+  if (!response.ok) {
+    throw new Error(`Put failed for url: ${url}`);
+  }
   const text = await response.text();
   if (text) {
     const result = JSON.parse(text) as T;
     return result;
   }
-  return text;
+  return null as T;
 }
 
 export async function apiPost<T = unknown>(url: string, body: unknown) {
@@ -33,10 +43,26 @@ export async function apiPost<T = unknown>(url: string, body: unknown) {
     },
     body: JSON.stringify(body),
   });
-  const json = await response.json();
-  return json as T;
+  if (!response.ok) {
+    throw new Error(`Post failed for url: ${url}`);
+  }
+  const text = await response.text();
+  if (text) {
+    const result = JSON.parse(text) as T;
+    return result;
+  }
+  return null as T;
 }
 
-export async function apiDelete(url: string) {
-  await fetch(`${BASE_URL}${url}`, { method: "DELETE" });
+export async function apiDelete<T = unknown>(url: string) {
+  const response = await fetch(`${BASE_URL}${url}`, { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error(`Get failed for url: ${url}`);
+  }
+  const text = await response.text();
+  if (text) {
+    const result = JSON.parse(text) as T;
+    return result;
+  }
+  return null as T;
 }

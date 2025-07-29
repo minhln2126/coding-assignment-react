@@ -1,6 +1,7 @@
 :root {
   --success: #42c765;
   --warning: #dbb93d;
+  --error: #d11d29;
 }
 
 * {

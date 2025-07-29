@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Ticket, User } from "@acme/shared-models";
+import { Ticket } from "@acme/shared-models";
 import {
   apiGetTickets,
   apiAddTicket,
@@ -8,29 +8,27 @@ import {
   apiMarkTicketComplete,
   apiMarkTicketIncomplete,
 } from "client/src/api/tickets";
-import { LOADING_STATUS, LoadingStatus } from "client/src/types";
+import { LOADING_STATUS, LoadingStatus, Nullable } from "client/src/types";
 import { logError, logWarn } from "client/src/utils/logger";
 import { getObjectKeys } from "client/src/utils";
 import { UNDEF } from "client/src/constants";
-import Tickets from "client/src/app/tickets/tickets";
 
 export type TicketFilter = {
   completed: Ticket["completed"][];
 };
 
 type TicketsStore = {
-  // List tickets
   tickets: Ticket[];
   ticketsLoadingStatus: LoadingStatus;
   filteredTickets: Ticket[];
   ticketFilter: TicketFilter;
-  // Add ticket
+
   addTicketStatus: LoadingStatus;
-  //
-  ticketById?: Ticket;
-  ticketByIdStatus: LoadingStatus;
-  assignUserToTicketStatus: LoadingStatus;
-  changeTicketStatus: LoadingStatus;
+
+  ticketById: Nullable<Ticket>;
+  ticketByIdLoadingStatus: LoadingStatus;
+
+  updateTicketLoadingStatus: LoadingStatus;
 };
 
 export const useTicketsStore = create<TicketsStore>((set) => ({
@@ -42,9 +40,11 @@ export const useTicketsStore = create<TicketsStore>((set) => ({
   filteredTickets: [],
 
   addTicketStatus: LOADING_STATUS.IDLE,
-  ticketByIdStatus: LOADING_STATUS.IDLE,
-  assignUserToTicketStatus: LOADING_STATUS.IDLE,
-  changeTicketStatus: LOADING_STATUS.IDLE,
+
+  ticketById: null,
+  ticketByIdLoadingStatus: LOADING_STATUS.IDLE,
+
+  updateTicketLoadingStatus: LOADING_STATUS.IDLE,
 }));
 
 export async function getAllTickets() {
@@ -67,8 +67,15 @@ export async function getAllTickets() {
 export async function addTicket(ticket: Pick<Ticket, "description">) {
   try {
     useTicketsStore.setState({ addTicketStatus: LOADING_STATUS.LOADING });
-    await apiAddTicket(ticket);
-    useTicketsStore.setState({ addTicketStatus: LOADING_STATUS.SUCCESS });
+    const newTicket = await apiAddTicket(ticket);
+    const tickets = [...useTicketsStore.getState().tickets, newTicket];
+    const filter = useTicketsStore.getState().ticketFilter;
+    const filteredTickets = applyTicketFilter(tickets, filter);
+    useTicketsStore.setState({
+      addTicketStatus: LOADING_STATUS.SUCCESS,
+      tickets,
+      filteredTickets,
+    });
   } catch (e) {
     logError(e);
     useTicketsStore.setState({ addTicketStatus: LOADING_STATUS.FAIL });
@@ -104,22 +111,26 @@ function applyTicketFilter(tickets: Ticket[], filter: TicketFilter): Ticket[] {
 
 export async function getTicketById(id: number) {
   try {
-    useTicketsStore.setState({ ticketByIdStatus: LOADING_STATUS.LOADING });
+    useTicketsStore.setState({
+      ticketByIdLoadingStatus: LOADING_STATUS.LOADING,
+    });
     const ticket = await apiGetTicketsById(id);
     useTicketsStore.setState({
       ticketById: ticket,
-      ticketByIdStatus: LOADING_STATUS.SUCCESS,
+      ticketByIdLoadingStatus: LOADING_STATUS.SUCCESS,
     });
   } catch (e) {
     logError(e);
-    useTicketsStore.setState({ ticketByIdStatus: LOADING_STATUS.FAIL });
+    useTicketsStore.setState({
+      ticketByIdLoadingStatus: LOADING_STATUS.FAIL,
+    });
   }
 }
 
-export async function changTicketStatus(ticketId: number, completed: boolean) {
+export async function changeTicketStatus(ticketId: number, completed: boolean) {
   try {
     useTicketsStore.setState({
-      changeTicketStatus: LOADING_STATUS.LOADING,
+      updateTicketLoadingStatus: LOADING_STATUS.LOADING,
     });
     if (completed) {
       await apiMarkTicketComplete(ticketId);
@@ -128,32 +139,36 @@ export async function changTicketStatus(ticketId: number, completed: boolean) {
     }
     await getTicketById(ticketId);
     useTicketsStore.setState({
-      changeTicketStatus: LOADING_STATUS.SUCCESS,
+      updateTicketLoadingStatus: LOADING_STATUS.SUCCESS,
       // Reset ticket list to get latest data when back to listing page
       ticketsLoadingStatus: LOADING_STATUS.IDLE,
       tickets: [],
     });
   } catch (e) {
     logError(e);
-    useTicketsStore.setState({ changeTicketStatus: LOADING_STATUS.FAIL });
+    useTicketsStore.setState({
+      updateTicketLoadingStatus: LOADING_STATUS.FAIL,
+    });
   }
 }
 
 export async function assignTicketToUser(ticketId: number, userId: number) {
   try {
     useTicketsStore.setState({
-      assignUserToTicketStatus: LOADING_STATUS.LOADING,
+      updateTicketLoadingStatus: LOADING_STATUS.LOADING,
     });
     await apiAssignUserToTicket(ticketId, userId);
     await getTicketById(ticketId);
     useTicketsStore.setState({
-      assignUserToTicketStatus: LOADING_STATUS.SUCCESS,
+      updateTicketLoadingStatus: LOADING_STATUS.SUCCESS,
       // Reset ticket list to get latest data when back to listing page
       ticketsLoadingStatus: LOADING_STATUS.IDLE,
       tickets: [],
     });
   } catch (e) {
     logError(e);
-    useTicketsStore.setState({ assignUserToTicketStatus: LOADING_STATUS.FAIL });
+    useTicketsStore.setState({
+      updateTicketLoadingStatus: LOADING_STATUS.FAIL,
+    });
   }
 }

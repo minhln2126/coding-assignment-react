@@ -74,7 +74,6 @@ const Tickets: FunctionComponent = () => {
   const onCreateNewTicket = useCallback(
     async (ticket: Pick<Ticket, "description">) => {
       await addTicket(ticket);
-      getAllTickets();
     },
     []
   );
@@ -84,6 +83,7 @@ const Tickets: FunctionComponent = () => {
       {loadingStatus === LOADING_STATUS.LOADING && <Loading />}
       {loadingStatus === LOADING_STATUS.SUCCESS && (
         <Fragment>
+          <h1 className={styles["title"]}>All tickets</h1>
           <Filter filter={ticketFilter} onFilterChange={onFilterChange} />
           <TicketList tickets={filteredTicket} users={users} />
           <Button
