@@ -1,10 +1,12 @@
 :root {
-  --success: #00ff00;
-  --warning: #ff0000;
+  --success: #42c765;
+  --warning: #dbb93d;
 }
 
 * {
   box-sizing: border-box;
   text-decoration: none;
   color: unset;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
 }

@@ -1,7 +1,23 @@
-/*
- * Replace this with your own classes
- *
- * e.g.
- * .container {
- * }
-*/
+.wrap {
+  margin: auto auto;
+  min-width: 500px;
+}
+.dataRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  align-items: center;
+}
+.ticket-description {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #c2c2c2;
+  border-radius: 4px;
+  min-height: 150px;
+}
+.lb {
+  min-width: 100px;
+}
+.input {
+  width: calc(100% - 100px);
+}

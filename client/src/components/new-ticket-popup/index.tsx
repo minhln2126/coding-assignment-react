@@ -28,7 +28,9 @@ const NewTicketPopup: FunctionComponent<NewTicketPopupProps> = ({
 
   const onSubmit = useCallback(() => {
     console.log(ticketData);
+    if (!ticketData.description) return;
     _onSubmit?.(ticketData);
+    onClose();
   }, [ticketData]);
 
   const popupRef = useOnClickOutside<HTMLDivElement>(onClose);
@@ -54,7 +56,13 @@ const NewTicketPopup: FunctionComponent<NewTicketPopupProps> = ({
             onChange={onDescriptionChange}
           />
         </div>
-        <Button onClick={onSubmit}>Submit</Button>
+        <Button
+          className={styles["submitBtn"]}
+          onClick={onSubmit}
+          variant="contained"
+        >
+          Submit
+        </Button>
       </div>
     </div>
   );
