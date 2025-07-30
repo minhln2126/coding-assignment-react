@@ -65,7 +65,11 @@ const TicketList: FunctionComponent<TicketListProps> = ({
         </TableHead>
         <TableBody>
           {ticketsWithAssignees.map((ticket) => (
-            <TableRow key={ticket.id} onClick={() => handleRowClick(ticket.id)}>
+            <TableRow
+              key={ticket.id}
+              onClick={() => handleRowClick(ticket.id)}
+              data-testid="ticket-row"
+            >
               <TableCell>{ticket.id}</TableCell>
               <TableCell>{ticket.description}</TableCell>
               <TableCell>

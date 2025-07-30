@@ -44,7 +44,11 @@ const NewTicketPopup: FunctionComponent<NewTicketPopupProps> = ({
 
   return (
     <div className={styles["modal"]}>
-      <div className={styles["popup"]} ref={popupRef}>
+      <div
+        className={styles["popup"]}
+        ref={popupRef}
+        data-testid="new-ticket-popup"
+      >
         <h4>New ticket</h4>
         <div className={styles["inputContainer"]}>
           <textarea

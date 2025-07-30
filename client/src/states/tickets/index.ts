@@ -47,6 +47,21 @@ export const useTicketsStore = create<TicketsStore>((set) => ({
   updateTicketLoadingStatus: LOADING_STATUS.IDLE,
 }));
 
+export function init() {
+  useTicketsStore.setState({
+    tickets: [],
+    ticketsLoadingStatus: LOADING_STATUS.IDLE,
+    ticketFilter: {
+      completed: [true, false],
+    },
+    filteredTickets: [],
+    addTicketStatus: LOADING_STATUS.IDLE,
+    ticketById: null,
+    ticketByIdLoadingStatus: LOADING_STATUS.IDLE,
+    updateTicketLoadingStatus: LOADING_STATUS.IDLE,
+  });
+}
+
 export async function getAllTickets() {
   try {
     useTicketsStore.setState({ ticketsLoadingStatus: LOADING_STATUS.LOADING });

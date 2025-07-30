@@ -14,6 +14,13 @@ export const useUsersStore = create<UsersStore>(() => ({
   usersLoadingStatus: LOADING_STATUS.IDLE,
 }));
 
+export function init() {
+  useUsersStore.setState({
+    users: [],
+    usersLoadingStatus: LOADING_STATUS.IDLE,
+  });
+}
+
 export async function getAllUsers() {
   try {
     useUsersStore.setState({ usersLoadingStatus: LOADING_STATUS.LOADING });

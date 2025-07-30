@@ -1,14 +1,18 @@
-import { render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Tickets from "client/src/app/tickets/tickets";
-import * as ticketsState from "client/src/states/tickets";
-import * as usersState from "client/src/states/users"; // Assuming this module exists for users store and getAllUsers
 
 import * as ticketApi from "client/src/api/tickets";
 import * as userApi from "client/src/api/users";
 
-import { LOADING_STATUS } from "client/src/types";
 import { Ticket, User } from "@acme/shared-models";
+import { init as initTicketsStore } from "client/src/states/tickets";
+import { init as initUsersStore } from "client/src/states/users";
+
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => jest.fn(),
+}));
 
 const mockTickets: Ticket[] = [
   {
@@ -29,60 +33,6 @@ const mockUsers: User[] = [
   { id: 2, name: "Bob" },
 ];
 
-const mockTicketsStoreState: ticketsState.TicketsStore = {
-  tickets: [],
-  ticketsLoadingStatus: LOADING_STATUS.IDLE,
-  filteredTickets: [],
-  ticketFilter: { completed: [true, false] },
-  addTicketStatus: LOADING_STATUS.IDLE,
-  ticketById: null,
-  ticketByIdLoadingStatus: LOADING_STATUS.IDLE,
-  updateTicketLoadingStatus: LOADING_STATUS.IDLE,
-};
-
-const mockUsersStoreState: usersState.UsersStore = {
-  users: [],
-  usersLoadingStatus: LOADING_STATUS.IDLE,
-};
-
-jest.mock("client/src/states/tickets", () => ({
-  useTicketsStore: () => {
-    return {
-      getState: jest.fn(() => mockTicketsStoreState),
-      setState: jest.fn((fn) => {
-        const newState =
-          typeof fn === "function" ? fn(mockTicketsStoreState) : fn;
-        Object.assign(mockTicketsStoreState, newState);
-      }),
-      subscribe: jest.fn(),
-      destroy: jest.fn(),
-    };
-  },
-  getAllTickets: jest.fn(),
-  addTicket: jest.fn(),
-  setTicketFilter: jest.fn(),
-  getTicketById: jest.fn(),
-  changeTicketStatus: jest.fn(),
-  assignTicketToUser: jest.fn(),
-}));
-
-jest.mock("client/src/states/users", () => ({
-  useUsersStore: () => {
-    return {
-      getState: jest.fn(() => mockUsersStoreState),
-      setState: jest.fn((fn) => {
-        const newState =
-          typeof fn === "function" ? fn(mockUsersStoreState) : fn;
-        Object.assign(mockUsersStoreState, newState);
-      }),
-      subscribe: jest.fn(),
-      destroy: jest.fn(),
-    };
-  },
-  // Mock the getAllUsers action as it's called by the component
-  getAllUsers: jest.fn(),
-}));
-
 jest.mock("client/src/api/tickets", () => ({
   apiGetTickets: jest.fn(),
   apiAddTicket: jest.fn(),
@@ -99,22 +49,11 @@ jest.mock("client/src/api/users", () => ({
 describe("Tickets Page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    cleanup();
+    initTicketsStore();
+    initUsersStore();
     (ticketApi.apiGetTickets as jest.Mock).mockResolvedValue(mockTickets);
     (userApi.apiGetUsers as jest.Mock).mockResolvedValue(mockUsers);
-    Object.assign(mockUsersStoreState, {
-      users: [],
-      usersLoadingStatus: LOADING_STATUS.IDLE,
-    });
-    Object.assign(mockTicketsStoreState, {
-      tickets: [],
-      ticketsLoadingStatus: LOADING_STATUS.IDLE,
-      filteredTickets: [],
-      ticketFilter: { completed: [true, false] },
-      addTicketStatus: LOADING_STATUS.IDLE,
-      ticketById: null,
-      ticketByIdLoadingStatus: LOADING_STATUS.IDLE,
-      updateTicketLoadingStatus: LOADING_STATUS.IDLE,
-    });
   });
 
   it("Should render successfully", () => {
@@ -123,24 +62,34 @@ describe("Tickets Page", () => {
   });
 
   it("Should render Loading component initially when data is fetching", () => {
-    mockTicketsStoreState.ticketsLoadingStatus = LOADING_STATUS.LOADING;
-    mockUsersStoreState.usersLoadingStatus = LOADING_STATUS.LOADING;
     render(<Tickets />);
     expect(screen.getByTestId("loading")).toBeInTheDocument();
     expect(screen.queryByTestId("ticket-list")).not.toBeInTheDocument();
   });
 
-  // it('Should show new ticket popup when "New ticket" button is clicked', async () => {
-  // mockTicketsStoreState.ticketsLoadingStatus = LOADING_STATUS.SUCCESS;
-  // mockUsersStoreState.usersLoadingStatus = LOADING_STATUS.SUCCESS;
-  // mockTicketsStoreState.tickets = mockTickets;
-  // mockTicketsStoreState.filteredTickets = mockTickets;
-  // mockUsersStoreState.users = mockUsers;
-  // render(<Tickets />);
-  // const newTicketButton = await screen.findByTestId("new-ticket-btn");
-  // expect(newTicketButton).toBeInTheDocument();
-  // await act(async () => {
-  //   newTicketButton.click();
-  // });
-  // });
+  it('Should show new ticket popup when "New ticket" button is clicked', async () => {
+    const { getByTestId } = render(<Tickets />);
+    await waitFor(() => {
+      return expect(getByTestId("ticket-list")).toBeInTheDocument();
+    });
+    const newTicketButton = getByTestId("new-ticket-btn");
+    expect(newTicketButton).toBeInTheDocument();
+    await act(async () => {
+      newTicketButton.click();
+    });
+    const newTicketPopup = getByTestId("new-ticket-popup");
+    expect(newTicketPopup).toBeInTheDocument();
+  });
+
+  it("Should show correct data in ticket list", async () => {
+    const { getByTestId, getAllByTestId, getByText } = render(<Tickets />);
+    await waitFor(() => {
+      return expect(getByTestId("ticket-list")).toBeInTheDocument();
+    });
+    const ticketRows = getAllByTestId("ticket-row");
+    expect(ticketRows).toHaveLength(mockTickets.length);
+    for (const ticket of mockTickets) {
+      expect(getByText(ticket.description)).toBeInTheDocument();
+    }
+  });
 });
